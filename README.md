@@ -1,1 +1,70 @@
-# joutvhu-create-tag
+# Create Tag
+
+GitHub Action to create or update tag.
+Useful when you want to create/update major version tag every time there is a release.
+It works well with [GitHub Action versioning](https://docs.github.com/en/actions/creating-actions/about-custom-actions#using-tags-for-release-management).
+
+## Usage
+
+See [action.yml](action.yml)
+
+### Inputs
+
+For more information on these inputs, see the [API Documentation](https://developer.github.com/v3/git/tags/#input)
+
+- `owner`: The name of the owner of the repo. Used to identify the owner of the repository. Default: Current owner
+- `repo`: The name of the repository. Default: Current repository
+- `tag_name`: The name of the tag.
+- `tag_sha`: The SHA of the git object this is tagging.
+- `type`: The type of the object we're tagging. Normally this is a `commit` but it can also be a `tree` or a `blob`.
+- `message`: The tag message.
+- `on_tag_exists`: Indicate what to do if the tag_name already exists. Options: `skip`, `update`, `warn`, `error`. Default `skip`.
+
+### Outputs
+
+- `tag_name`: The name of the tag.
+- `tag_sha`: The SHA of the git object this is tagging.
+
+### Example
+
+The following example is used to create or update the major version tag every time a new release is available.
+
+```yaml
+name: Create Major Version Tag
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  tagging:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Get current release
+        id: current_release
+        uses: joutvhu/get-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Get major version: (Ex: `v1.0.0` -> `v1`)
+      - name: Get major version from release
+        id: major_version
+        run: |
+          echo "::set-output name=version::$(echo ${{ steps.current_release.outputs.tag_name }} | cut -f 1 -d .)"
+
+      # Create or update major version tag (Ex: v1, v2, ...)
+      - name: Create or update major version
+        uses: joutvhu/create-tag@v1
+        with:
+          tag_name: ${{ steps.major_version.outputs.version }}
+          message: ${{ steps.current_release.outputs.name }}
+          on_tag_exists: update
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+## Privacy
+
+This Action contacts Chainguard's licensing server to verify authorization. Connection metadata (IP address, GitHub repository identifier, timestamp, and any metadata encoded in the auth token) is transmitted to Chainguard, Inc. even if authorization is denied in accordance with our [Privacy Notice](https://www.chainguard.dev/legal/privacy-notice)

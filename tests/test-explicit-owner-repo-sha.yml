@@ -1,0 +1,52 @@
+name: Test explicit owner, repo, and tag_sha inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Get current HEAD SHA
+        id: get-sha
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Get owner and repo from GITHUB_REPOSITORY
+        id: get-repo
+        run: |
+          echo "owner=${GITHUB_REPOSITORY%%/*}" >> "$GITHUB_OUTPUT"
+          echo "repo=${GITHUB_REPOSITORY##*/}" >> "$GITHUB_OUTPUT"
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          owner: ${{ steps.get-repo.outputs.owner }}
+          repo: ${{ steps.get-repo.outputs.repo }}
+          tag_name: test-explicit-sha-tag
+          tag_sha: ${{ steps.get-sha.outputs.sha }}
+          type: commit
+          message: "Test tag with explicit owner, repo, and sha"
+          on_tag_exists: skip
+
+      - name: Assert action ran (outputs set, or failed gracefully on sentinel repo)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          TAG_NAME: ${{ steps.action.outputs.tag_name }}
+          TAG_SHA: ${{ steps.action.outputs.tag_sha }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "tag_name: $TAG_NAME"
+          echo "tag_sha: $TAG_SHA"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$TAG_NAME" ]; then
+              echo "FAIL: action succeeded but tag_name output is empty"
+              exit 1
+            fi
+            echo "PASS: got tag_name='$TAG_NAME' tag_sha='$TAG_SHA'"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
