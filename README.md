@@ -6,9 +6,9 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 ## Versions
 
-| Version | Tag | Upstream commit |
-|---------|-----|-----------------|
-| v1.0.2 | [`v1.0.2`](https://github.com/chainguard-actions/joutvhu-create-tag/tree/v1.0.2) | [`e5e6b59`](https://github.com/joutvhu/create-tag/commit/e5e6b59bb6ad5604c09de0409f1798edea88ae22) |
+| Version | Tag | Upstream commit | Hardening report |
+|---------|-----|-----------------|------------------|
+| v1.0.2 | [`v1.0.2`](https://github.com/chainguard-actions/joutvhu-create-tag/tree/v1.0.2) | [`e5e6b59`](https://github.com/joutvhu/create-tag/commit/e5e6b59bb6ad5604c09de0409f1798edea88ae22) | [`HARDENING.md`](https://github.com/chainguard-actions/joutvhu-create-tag/blob/v1.0.2/HARDENING.md) |
 
 ## Privacy
 
